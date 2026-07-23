@@ -1,22 +1,40 @@
-.DS_Store
-*.pyc
-*.egg-info
-*.swp
-tags
-hrms/public/dist
-hrms/public/node_modules
-hrms/docs/current
+# Dependencies
 node_modules/
-dist/
-__pycache__/
 
-# build/
-.vscode
-.vs
-node_modules
-*debug.log
-hrms/docs/current
-hrms/public/frontend
-hrms/www/hrms.html
-hrms/public/roster
-hrms/www/roster.html
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.vs/
+*.swp
+*.swo
+
+# Uploads (keep folder structure, ignore actual files)
+backend/uploads/avatars/*
+backend/uploads/documents/*
+!backend/uploads/avatars/.gitkeep
+!backend/uploads/documents/.gitkeep
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+client/.vite/
