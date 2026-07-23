@@ -1,0 +1,20 @@
+﻿module.exports = {
+  ROLES: { ADMIN: 'admin', HR: 'hr', MANAGER: 'manager', EMPLOYEE: 'employee' },
+  LEAVE_TYPES: ['annual', 'sick', 'casual', 'maternity', 'paternity', 'unpaid', 'compensatory'],
+  LEAVE_STATUS: ['pending', 'approved', 'rejected', 'cancelled'],
+  ATTENDANCE_STATUS: ['present', 'absent', 'late', 'half_day', 'on_leave', 'holiday', 'work_from_home'],
+  PAYROLL_STATUS: ['draft', 'processed', 'paid', 'cancelled'],
+  RECRUITMENT_STATUS: ['open', 'in_progress', 'closed', 'on_hold'],
+  APPLICATION_STATUS: ['applied', 'screening', 'interview', 'offered', 'hired', 'rejected'],
+  PERFORMANCE_STATUS: ['draft', 'submitted', 'reviewed', 'acknowledged'],
+  TRAINING_STATUS: ['scheduled', 'ongoing', 'completed', 'cancelled'],
+  DOCUMENT_TYPES: ['identity', 'address', 'education', 'experience', 'contract', 'other'],
+  SHIFT_TYPES: ['morning', 'afternoon', 'night', 'general', 'flexible'],
+  NOTIFICATION_TYPES: ['info', 'warning', 'success', 'error'],
+  GENDER: ['male', 'female', 'other'],
+  MARITAL_STATUS: ['single', 'married', 'divorced', 'widowed'],
+  BLOOD_GROUPS: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+  EMPLOYMENT_TYPES: ['full_time', 'part_time', 'contract', 'intern', 'freelance'],
+  EMPLOYMENT_STATUS: ['active', 'inactive', 'on_probation', 'terminated', 'resigned'],
+  PAGINATION: { DEFAULT_PAGE: 1, DEFAULT_LIMIT: 10, MAX_LIMIT: 100 }
+};

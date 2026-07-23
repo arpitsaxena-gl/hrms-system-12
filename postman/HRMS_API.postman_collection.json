@@ -1,0 +1,294 @@
+{
+  "info": {
+    "name": "HRMS API",
+    "description": "Enterprise Human Resource Management System API Collection",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "TOKEN", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["const r = pm.response.json();", "if(r.success) { pm.environment.set('TOKEN', r.data.token); pm.collectionVariables.set('TOKEN', r.data.token); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"email\": \"admin@hrms.com\", \"password\": \"Admin@123\"}" },
+            "url": { "raw": "{{BASE_URL}}/auth/login", "host": ["{{BASE_URL}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/auth/me", "host": ["{{BASE_URL}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"refreshToken\": \"YOUR_REFRESH_TOKEN\"}" },
+            "url": { "raw": "{{BASE_URL}}/auth/refresh", "host": ["{{BASE_URL}}"], "path": ["auth", "refresh"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/employees?page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["employees"], "query": [{"key":"page","value":"1"},{"key":"limit","value":"10"}] }
+          }
+        },
+        {
+          "name": "Get Employee",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/employees/:id", "host": ["{{BASE_URL}}"], "path": ["employees", ":id"], "variable": [{"key":"id","value":"EMPLOYEE_ID"}] }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@hrms.com\",\n  \"department\": \"DEPARTMENT_ID\",\n  \"designation\": \"DESIGNATION_ID\",\n  \"joiningDate\": \"2024-01-01\",\n  \"employmentType\": \"full_time\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/employees", "host": ["{{BASE_URL}}"], "path": ["employees"] }
+          }
+        },
+        {
+          "name": "Employee Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/employees/stats", "host": ["{{BASE_URL}}"], "path": ["employees", "stats"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Departments",
+      "item": [
+        {
+          "name": "List Departments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/departments", "host": ["{{BASE_URL}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Create Department",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\": \"IT\", \"code\": \"IT\", \"description\": \"Information Technology\"}" },
+            "url": { "raw": "{{BASE_URL}}/departments", "host": ["{{BASE_URL}}"], "path": ["departments"] }
+          }
+        },
+        {
+          "name": "Department Tree",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/departments/tree", "host": ["{{BASE_URL}}"], "path": ["departments", "tree"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Check In",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"isRemote\": false}" },
+            "url": { "raw": "{{BASE_URL}}/attendance/check-in", "host": ["{{BASE_URL}}"], "path": ["attendance", "check-in"] }
+          }
+        },
+        {
+          "name": "Check Out",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": { "raw": "{{BASE_URL}}/attendance/check-out", "host": ["{{BASE_URL}}"], "path": ["attendance", "check-out"] }
+          }
+        },
+        {
+          "name": "Get Attendance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/attendance?page=1&limit=20", "host": ["{{BASE_URL}}"], "path": ["attendance"], "query": [{"key":"page","value":"1"},{"key":"limit","value":"20"}] }
+          }
+        },
+        {
+          "name": "Attendance Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/attendance/summary?month=7&year=2026", "host": ["{{BASE_URL}}"], "path": ["attendance", "summary"], "query": [{"key":"month","value":"7"},{"key":"year","value":"2026"}] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaves",
+      "item": [
+        {
+          "name": "Apply Leave",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"leaveType\": \"casual\",\n  \"startDate\": \"2026-08-01\",\n  \"endDate\": \"2026-08-02\",\n  \"reason\": \"Personal work\"\n}" },
+            "url": { "raw": "{{BASE_URL}}/leaves", "host": ["{{BASE_URL}}"], "path": ["leaves"] }
+          }
+        },
+        {
+          "name": "Get Leaves",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/leaves?status=pending", "host": ["{{BASE_URL}}"], "path": ["leaves"], "query": [{"key":"status","value":"pending"}] }
+          }
+        },
+        {
+          "name": "Approve Leave",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\": \"approved\"}" },
+            "url": { "raw": "{{BASE_URL}}/leaves/:id/status", "host": ["{{BASE_URL}}"], "path": ["leaves", ":id", "status"], "variable": [{"key":"id","value":"LEAVE_ID"}] }
+          }
+        },
+        {
+          "name": "Get Leave Balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/leaves/balance", "host": ["{{BASE_URL}}"], "path": ["leaves", "balance"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payroll",
+      "item": [
+        {
+          "name": "Get Payrolls",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/payroll?month=7&year=2026", "host": ["{{BASE_URL}}"], "path": ["payroll"], "query": [{"key":"month","value":"7"},{"key":"year","value":"2026"}] }
+          }
+        },
+        {
+          "name": "Process Payroll",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"month\": 7, \"year\": 2026}" },
+            "url": { "raw": "{{BASE_URL}}/payroll/process", "host": ["{{BASE_URL}}"], "path": ["payroll", "process"] }
+          }
+        },
+        {
+          "name": "Payroll Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/payroll/summary?month=7&year=2026", "host": ["{{BASE_URL}}"], "path": ["payroll", "summary"], "query": [{"key":"month","value":"7"},{"key":"year","value":"2026"}] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/attendance?month=7&year=2026", "host": ["{{BASE_URL}}"], "path": ["reports", "attendance"] }
+          }
+        },
+        {
+          "name": "Leave Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/leaves?year=2026", "host": ["{{BASE_URL}}"], "path": ["reports", "leaves"] }
+          }
+        },
+        {
+          "name": "Payroll Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/payroll?year=2026", "host": ["{{BASE_URL}}"], "path": ["reports", "payroll"] }
+          }
+        },
+        {
+          "name": "Headcount Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/reports/headcount", "host": ["{{BASE_URL}}"], "path": ["reports", "headcount"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/dashboard", "host": ["{{BASE_URL}}"], "path": ["dashboard"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/settings", "host": ["{{BASE_URL}}"], "path": ["settings"] }
+          }
+        },
+        {
+          "name": "Update Setting",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"key\": \"company_name\", \"value\": \"My Company\"}" },
+            "url": { "raw": "{{BASE_URL}}/settings", "host": ["{{BASE_URL}}"], "path": ["settings"] }
+          }
+        }
+      ]
+    }
+  ]
+}

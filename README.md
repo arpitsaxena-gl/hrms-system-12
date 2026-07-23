@@ -1,138 +1,334 @@
-<div align="center">
-	<a href="https://frappe.io/hr">
-		<img src=".github/frappe-hr-logo.png" height="80px" width="80px" alt="Frappe HR Logo">
-	</a>
-	<h2>Frappe HR</h2>
-	<p align="center">
-		<p>Open Source, modern, and easy-to-use HR and Payroll Software</p>
-	</p>
+# HRMS — Human Resource Management System
 
-[![CI](https://github.com/frappe/hrms/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/frappe/hrms/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/frappe/hrms/branch/develop/graph/badge.svg?token=0TwvyUg3I5)](https://codecov.io/gh/frappe/hrms)
+A full-stack HRMS application built with Node.js/Express on the backend and React/TypeScript on the frontend, backed by MongoDB Atlas.
 
-<a href="https://trendshift.io/repositories/10972" target="_blank"><img src="https://trendshift.io/api/badge/repositories/10972" alt="frappe%2Fhrms | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
-</div>
+---
 
-<div align="center">
-	<img src=".github/hrms-hero.png"/>
-</div>
+## Tech Stack
 
-<div align="center">
-	<a href="https://frappe.io/hr">Website</a>
-	-
-	<a href="https://docs.frappe.io/hr/introduction">Documentation</a>
-</div>
+### Backend
+| Technology | Purpose |
+|---|---|
+| Node.js + Express | REST API server |
+| MongoDB + Mongoose | Database & ODM |
+| Socket.IO | Real-time notifications |
+| JWT (jsonwebtoken) | Authentication & refresh tokens |
+| bcryptjs | Password hashing |
+| Multer | File uploads (avatars, documents) |
+| Winston | Structured logging |
+| Swagger UI | Auto-generated API docs |
+| Helmet + Rate Limiter | Security middleware |
+| Nodemailer | Email notifications |
+| PDFKit + XLSX | Report generation |
+| express-mongo-sanitize | NoSQL injection prevention |
 
-## Frappe HR
+### Frontend
+| Technology | Purpose |
+|---|---|
+| React 19 + TypeScript | UI framework |
+| Vite | Build tool & dev server |
+| Tailwind CSS | Utility-first styling |
+| React Router v7 | Client-side routing |
+| Zustand | Global state management |
+| TanStack Query v5 | Server state & caching |
+| TanStack Table v8 | Data tables |
+| React Hook Form + Zod | Forms & validation |
+| Recharts | Charts & analytics |
+| Socket.IO Client | Real-time updates |
+| Axios | HTTP client |
+| Lucide React | Icon library |
 
-Frappe HR has everything you need to drive excellence within the company. It's a complete HRMS solution with over 13 different modules right from Employee Management, Onboarding, Leaves, to Payroll, Taxation, and more!
+---
 
-## Motivation
-When Frappe team started growing in terms of size, we needed an open-source HR and Payroll software. We didn't find any "true" open-source HR software out there and so decided to build one ourselves.
-Initially, it was a set of modules within ERPNext but version 14 onwards, as the modules became more mature, Frappe HR was created as a separate product.
+## Project Structure
 
-## Key Features
-
-- **Employee Lifecycle**: From onboarding employees, managing promotions and transfers, all the way to documenting feedback with exit interviews, make life easier for employees throughout their life cycle.
-- **Leave and Attendance**: Configure leave policies, pull regional holidays with a click, check-in and check-out with geolocation capturing, track leave balances and attendance with reports.
-- **Expense Claims and Advances**: Manage employee advances, claim expenses, configure multi-level approval workflows, all this with seamless integration with ERPNext accounting.
-- **Performance Management**: Track goals, align goals with key result areas (KRAs), enable employees to evaluate themselves, make managing appraisal cycles easy.
-- **Payroll & Taxation**: Create salary structures, configure income tax slabs, run standard payroll, accommodate additional salaries and off cycle payments, view income breakup on salary slips and so much more.
-- **Frappe HR Mobile App**: Apply for and approve leaves on the go, check-in and check-out, access employee profile right from the mobile app.
-
-<details open>
-
-<summary>View Screenshots</summary>
-	<img src=".github/hrms-appraisal.png"/>
-	<img src=".github/hrms-requisition.png"/>
-	<img src=".github/hrms-attendance.png"/>
-	<img src=".github/hrms-salary.png"/>
-	<img src=".github/hrms-pwa.png"/>
-</details>
-
-### Under the Hood
-
-- [**Frappe Framework**](https://github.com/frappe/frappe): A full-stack web application framework written in Python and Javascript. The framework provides a robust foundation for building web applications, including a database abstraction layer, user authentication, and a REST API.
-
-- [**Frappe UI**](https://github.com/frappe/frappe-ui): A Vue-based UI library, to provide a modern user interface. The Frappe UI library provides a variety of components that can be used to build single-page applications on top of the Frappe Framework.
-
-## Production Setup
-
-### Managed Hosting
-
-You can try [Frappe Cloud](https://frappecloud.com), a simple, user-friendly and sophisticated [open-source](https://github.com/frappe/press) platform to host Frappe applications with peace of mind.
-
-It takes care of installation, setup, upgrades, monitoring, maintenance and support of your Frappe deployments. It is a fully featured developer platform with an ability to manage and control multiple Frappe deployments.
-
-<div>
-	<a href="https://frappecloud.com/hrms/signup" target="_blank">
-		<picture>
-			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/try-on-fc-white.png">
-			<img src="https://frappe.io/files/try-on-fc-black.png" alt="Try on Frappe Cloud" height="28" />
-		</picture>
-	</a>
-</div>
-
-
-## Development setup
-### Docker
-You need Docker, docker-compose and git setup on your machine. Refer [Docker documentation](https://docs.docker.com/). After that, run the following commands:
 ```
-git clone https://github.com/frappe/hrms
-cd hrms/docker
-docker-compose up
+hrms/
+??? backend/                   # Express API server
+?   ??? server.js              # Entry point
+?   ??? seed/
+?   ?   ??? index.js           # Database seeder
+?   ??? uploads/
+?   ?   ??? avatars/           # Employee profile photos
+?   ?   ??? documents/         # Employee documents
+?   ??? src/
+?       ??? config/            # DB, Swagger, constants (3 files)
+?       ??? controllers/       # Route handlers (20 files)
+?       ??? middleware/        # Auth, audit, validation, upload (6 files)
+?       ??? models/            # Mongoose schemas (16 files)
+?       ??? routes/            # Express routers (20 files)
+?       ??? services/          # Email, payroll, socket (3 files)
+?       ??? utils/             # Logger, helpers, API response (3 files)
+?
+??? client/                    # React + TypeScript frontend
+?   ??? src/
+?       ??? components/
+?       ?   ??? layout/        # Layout, Navbar, Sidebar (3 files)
+?       ?   ??? ui/            # Avatar, Badge, Modal, StatCard, Table (5 files)
+?       ??? hooks/             # usePermissions (1 file)
+?       ??? lib/               # Axios instance (1 file)
+?       ??? pages/             # One folder per module (22 pages)
+?       ??? store/             # Zustand auth store (1 file)
+?       ??? types/             # Global TypeScript types (1 file)
+?
+??? postman/                   # Postman collection for API testing
 ```
 
-Wait for some time until the setup script creates a site. After that you can access `http://localhost:8000` in your browser and the login screen for HR should show up.
+---
 
-Use the following credentials to log in:
+## Codebase Stats
 
-- Username: `Administrator`
-- Password: `admin`
+| Metric | Count |
+|---|---|
+| Backend source files | 71 |
+| Frontend source files | 41 |
+| Backend lines of code | ~2,765 |
+| Frontend lines of code | ~3,679 |
+| **Total lines of code** | **~6,444** |
+| API routes | 20 resource endpoints |
+| React pages | 22 pages |
+| Mongoose models | 16 |
 
-### Local
+---
 
-1. Set up bench by following the [Installation Steps](https://frappeframework.com/docs/user/en/installation) and start the server and keep it running
-	```sh
-	$ bench start
-	```
-2. In a separate terminal window, run the following commands
-	```sh
-	$ bench new-site hrms.localhost
-	$ bench get-app erpnext
-	$ bench get-app hrms
-	$ bench --site hrms.localhost install-app hrms
-	$ bench --site hrms.localhost add-to-hosts
-	```
-3. You can access the site at `http://hrms.localhost:8080`
+## Modules / Features
 
-## Learning and Community
+| Module | Description |
+|---|---|
+| Authentication | JWT login, refresh tokens, role-based access |
+| Dashboard | Summary stats, charts, recent activity |
+| Employees | Full employee lifecycle management |
+| Departments | Department CRUD with color coding |
+| Designations | Job titles with salary ranges |
+| Attendance | Check-in/out, reports |
+| Leaves | Leave requests, approvals, balances |
+| Payroll | Salary computation, payslip generation |
+| Recruitment | Job postings, applicant tracking |
+| Performance | Reviews, ratings, goals |
+| Training | Programs, enrollment, completion tracking |
+| Documents | Upload & manage employee documents |
+| Holidays | Company holiday calendar |
+| Shifts | Shift scheduling (General, Morning, Night) |
+| Notifications | Real-time alerts via Socket.IO |
+| Reports | PDF/Excel exports |
+| Settings | Company-wide configuration |
+| Users | User account management |
+| Audit Logs | Activity tracking across the system |
+| Profile | Employee self-service profile |
 
-1. [Frappe School](https://frappe.school) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.
-2. [Documentation](https://docs.frappe.io/hr) - Extensive documentation for Frappe HR.
-3. [User Forum](https://discuss.erpnext.com/) - Engage with the community of ERPNext users and service providers.
-4. [Telegram Group](https://t.me/frappehr) - Get instant help from the community of users.
+---
 
+## Roles
 
-## Contributing
+| Role | Access Level |
+|---|---|
+| `admin` | Full access to all modules |
+| `hr` | Employee, leave, payroll, recruitment management |
+| `manager` | View team, approve leaves, performance reviews |
+| `employee` | Self-service: attendance, leaves, profile, documents |
 
-1. [Issue Guidelines](https://github.com/frappe/erpnext/wiki/Issue-Guidelines)
-1. [Report Security Vulnerabilities](https://erpnext.com/security)
-1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
+---
 
+## Setup & Installation
 
-## Logo and Trademark Policy
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18 or higher
+- [MongoDB Atlas](https://cloud.mongodb.com) account (free tier works)
+- npm (comes with Node.js)
 
-Please read our [Logo and Trademark Policy](TRADEMARK_POLICY.md).
+---
 
-<br />
-<br />
-<div align="center" style="padding-top: 0.75rem;">
-	<a href="https://frappe.io" target="_blank">
-		<picture>
-			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/Frappe-white.png">
-			<img src="https://frappe.io/files/Frappe-black.png" alt="Frappe Technologies" height="28"/>
-		</picture>
-	</a>
-</div>
+### Step 1 — Clone the Repository
 
+```bash
+git clone <repo-url>
+cd hrms
+```
+
+---
+
+### Step 2 — Configure MongoDB Atlas
+
+1. Log in to [cloud.mongodb.com](https://cloud.mongodb.com)
+2. Create a cluster (free M0 tier is sufficient)
+3. **Database Access** ? Add a database user with `readWriteAnyDatabase` role
+4. **Network Access** ? Add IP Address ? Allow access from anywhere (`0.0.0.0/0`) for development
+5. **Clusters** ? Connect ? Drivers ? Copy the connection string
+
+---
+
+### Step 3 — Configure Backend Environment
+
+Create `backend/.env`:
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/hrms
+JWT_SECRET=your_long_random_jwt_secret
+JWT_EXPIRE=7d
+JWT_REFRESH_SECRET=your_long_random_refresh_secret
+JWT_REFRESH_EXPIRE=30d
+FRONTEND_URL=http://localhost:3000
+MAX_FILE_SIZE=10485760
+UPLOAD_PATH=./uploads
+RATE_LIMIT_WINDOW=15
+RATE_LIMIT_MAX=100
+BCRYPT_ROUNDS=10
+COMPANY_NAME=Acme Corp
+COMPANY_EMAIL=hr@acmecorp.com
+```
+
+> Replace `<username>`, `<password>`, and the cluster hostname with your actual Atlas values.
+
+---
+
+### Step 4 — Install Backend Dependencies & Seed Database
+
+```bash
+cd backend
+npm install
+npm run seed
+```
+
+Seeding creates sample departments, employees, shifts, holidays, and the following default accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@hrms.com | Admin@123 |
+| HR Manager | hr@hrms.com | Hr@12345 |
+| Manager | manager@hrms.com | Manager@123 |
+| Employee | alice@hrms.com | Employee@123 |
+
+---
+
+### Step 5 — Start the Backend Server
+
+```bash
+npm run dev
+```
+
+Server starts at **http://localhost:5000**
+API docs available at **http://localhost:5000/api-docs**
+
+---
+
+### Step 6 — Install Frontend Dependencies & Start Dev Server
+
+Open a **new terminal**:
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Frontend starts at **http://localhost:3000**
+
+> The Vite dev server proxies all `/api` requests to `http://localhost:5000` automatically.
+
+---
+
+### Step 7 — Open the App
+
+Navigate to **http://localhost:3000** and log in with:
+- Email: `admin@hrms.com`
+- Password: `Admin@123`
+
+---
+
+## Available Scripts
+
+### Backend (`/backend`)
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start with nodemon (auto-restart on changes) |
+| `npm start` | Start without nodemon (production) |
+| `npm run seed` | Seed the database with sample data |
+
+### Frontend (`/client`)
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run oxlint |
+
+---
+
+## API Overview
+
+Base URL: `http://localhost:5000/api`
+
+| Endpoint | Description |
+|---|---|
+| `POST /auth/login` | Login and receive JWT tokens |
+| `GET /auth/me` | Get current user profile |
+| `GET /employees` | List all employees (paginated) |
+| `GET /dashboard` | Dashboard stats and charts |
+| `GET /attendance` | Attendance records |
+| `GET /leaves` | Leave requests |
+| `GET /payroll` | Payroll records |
+| `GET /reports` | Generate reports |
+| `GET /api-docs` | Swagger UI (full API docs) |
+
+For the full API reference, visit **http://localhost:5000/api-docs** after starting the backend.
+
+---
+
+## Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `NODE_ENV` | Yes | `development` | Runtime environment |
+| `PORT` | No | `5000` | Backend server port |
+| `MONGODB_URI` | Yes | — | MongoDB Atlas connection string |
+| `JWT_SECRET` | Yes | — | Secret for signing access tokens |
+| `JWT_EXPIRE` | No | `7d` | Access token expiry |
+| `JWT_REFRESH_SECRET` | Yes | — | Secret for signing refresh tokens |
+| `JWT_REFRESH_EXPIRE` | No | `30d` | Refresh token expiry |
+| `FRONTEND_URL` | No | `http://localhost:3000` | Allowed CORS origin |
+| `EMAIL_HOST` | No | — | SMTP host for email |
+| `EMAIL_USER` | No | — | SMTP username |
+| `EMAIL_PASS` | No | — | SMTP password |
+| `COMPANY_NAME` | No | `Acme Corp` | Displayed in app & emails |
+| `BCRYPT_ROUNDS` | No | `10` | Password hashing cost factor |
+
+---
+
+## Architecture
+
+```
+Browser (React + Vite)
+        ?
+        ?  HTTP / WebSocket
+        ?
+  Vite Dev Proxy (:3000)
+        ?
+        ?  /api/*  ?  :5000
+        ?
+  Express Server (:5000)
+    ??? Helmet / Rate Limiter / CORS
+    ??? JWT Auth Middleware
+    ??? Audit Log Middleware
+    ??? Routes ? Controllers ? Services
+    ??? Mongoose ODM
+              ?
+              ?
+       MongoDB Atlas (Cloud)
+```
+
+**Data flow:**
+1. React components dispatch actions via Zustand or TanStack Query
+2. Axios sends requests to `/api/*` (proxied by Vite to port 5000)
+3. Express middleware handles auth, rate limiting, and audit logging
+4. Controllers process business logic and call Mongoose models
+5. Responses return JSON; real-time events pushed via Socket.IO
+
+---
+
+## License
+
+MIT
