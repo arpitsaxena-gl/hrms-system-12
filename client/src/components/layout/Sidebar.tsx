@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Employees', icon: Users, to: '/employees' },
   { label: 'Departments', icon: Building2, to: '/departments', roles: ['admin', 'hr'] },
   { label: 'Designations', icon: Briefcase, to: '/designations', roles: ['admin', 'hr'] },
