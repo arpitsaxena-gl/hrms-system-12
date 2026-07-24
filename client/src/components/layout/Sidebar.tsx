@@ -1,13 +1,32 @@
-﻿import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useAuthStore } from '../../store/authStore'
 import {
-  LayoutDashboard, Users, UserCircle, Building2, Briefcase, Clock,
-  CalendarDays, DollarSign, UserPlus, Star, GraduationCap, FileText,
-  Gift, Timer, Bell, BarChart3, Settings, Shield, LogOut, Building, X
+  LayoutDashboard,
+  Users,
+  UserCircle,
+  Building2,
+  Briefcase,
+  Clock,
+  CalendarDays,
+  DollarSign,
+  UserPlus,
+  Star,
+  GraduationCap,
+  FileText,
+  Gift,
+  Timer,
+  Bell,
+  BarChart3,
+  Settings,
+  Shield,
+  LogOut,
+  Building,
+  X,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
+  { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Employees', icon: Users, to: '/employees' },
   { label: 'Departments', icon: Building2, to: '/departments', roles: ['admin', 'hr'] },
   { label: 'Designations', icon: Briefcase, to: '/designations', roles: ['admin', 'hr'] },
@@ -27,38 +46,41 @@ const NAV_ITEMS = [
   { label: 'Audit Logs', icon: Shield, to: '/audit', roles: ['admin'] },
 ]
 
-interface SidebarProps { collapsed: boolean; onClose?: () => void }
+interface SidebarProps {
+  collapsed: boolean
+  onClose?: () => void
+}
 
 export function Sidebar({ collapsed, onClose }: SidebarProps) {
-  const { user, logout } = useAuthStore()
   const { role } = usePermissions()
+  const { logout } = useAuthStore()
   const items = NAV_ITEMS.filter(item => !item.roles || item.roles.includes(role))
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-700 flex-shrink-0">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
               <Building className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <span className="text-white font-bold text-sm leading-none">HRMS</span>
-              <p className="text-slate-400 text-xs">Enterprise</p>
-            </div>
+            <span className="text-white font-bold text-sm leading-none">HRMS Enterprise</span>
           </div>
         )}
+
         {collapsed && (
           <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center mx-auto">
             <Building className="w-5 h-5 text-white" />
           </div>
         )}
+
         {onClose && (
-          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-white p-1 transition-colors" aria-label="Close sidebar">
             <X className="w-5 h-5" />
           </button>
         )}
       </div>
+
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {items.map(item => (
           <NavLink
@@ -66,8 +88,8 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
             to={item.to}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all text-sm font-medium ${
-                isActive ? 'bg-primary-600 !text-white hover:bg-primary-700' : ''
+              `flex items-center gap-3 px-3 py-2.5 rounded-full text-slate-400 hover:bg-slate-800 hover:text-white transition-all text-sm font-medium ${
+                isActive ? 'bg-primary-600 !text-white hover:bg-primary-600 shadow-sm' : ''
               }`
             }
           >
@@ -76,21 +98,27 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
           </NavLink>
         ))}
       </nav>
+
       <div className="border-t border-slate-700 p-3 flex-shrink-0">
         {collapsed ? (
-          <button onClick={logout} className="text-slate-400 hover:text-red-400 transition-colors p-2 mx-auto flex" title="Logout">
+          <button
+            onClick={logout}
+            className="text-slate-400 hover:text-red-400 transition-colors p-2 mx-auto flex"
+            title="Logout"
+            aria-label="Logout"
+          >
             <LogOut className="w-4 h-4" />
           </button>
         ) : (
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+              SA
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-medium truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-slate-400 text-xs capitalize">{user?.role}</p>
+              <p className="text-white text-xs font-medium truncate">Super Admin</p>
+              <p className="text-slate-400 text-xs">Admin</p>
             </div>
-            <button onClick={logout} className="text-slate-400 hover:text-red-400 transition-colors p-1 flex-shrink-0">
+            <button onClick={logout} className="text-slate-400 hover:text-red-400 transition-colors p-1 flex-shrink-0" aria-label="Logout">
               <LogOut className="w-4 h-4" />
             </button>
           </div>

@@ -1,8 +1,9 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useAuthStore } from './store/authStore'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/auth/LoginPage'
+import DashboardPage from './pages/dashboard/DashboardPage'
 import EmployeesPage from './pages/employees/EmployeesPage'
 import EmployeeDetailPage from './pages/employees/EmployeeDetailPage'
 import EmployeeFormPage from './pages/employees/EmployeeFormPage'
@@ -38,14 +39,17 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { fetchMe, isAuthenticated } = useAuthStore()
-  useEffect(() => { if (isAuthenticated) fetchMe() }, [isAuthenticated])
+  useEffect(() => {
+    if (isAuthenticated) fetchMe()
+  }, [isAuthenticated])
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<Navigate to="/employees" replace />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="employees" element={<EmployeesPage />} />
           <Route path="employees/new" element={<EmployeeFormPage />} />
           <Route path="employees/:id" element={<EmployeeDetailPage />} />
@@ -67,13 +71,16 @@ export default function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="audit" element={<AuditPage />} />
-          <Route path="*" element={
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-              <h1 className="text-6xl font-bold text-gray-200 mb-4">404</h1>
-              <p className="text-gray-500 mb-6">Page not found</p>
-              <a href="/dashboard" className="btn-primary">Go to Dashboard</a>
-            </div>
-          } />
+          <Route
+            path="*"
+            element={
+              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                <h1 className="text-6xl font-bold text-gray-200 mb-4">404</h1>
+                <p className="text-gray-500 mb-6">Page not found</p>
+                <a href="/dashboard" className="btn-primary">Go to Dashboard</a>
+              </div>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>
