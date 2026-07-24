@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
+import { useAuthStore } from '../../store/authStore'
 import {
   LayoutDashboard,
   Users,
@@ -52,6 +53,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onClose }: SidebarProps) {
   const { role } = usePermissions()
+  const { logout } = useAuthStore()
   const items = NAV_ITEMS.filter(item => !item.roles || item.roles.includes(role))
 
   return (
@@ -99,7 +101,12 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
 
       <div className="border-t border-slate-700 p-3 flex-shrink-0">
         {collapsed ? (
-          <button className="text-slate-400 hover:text-red-400 transition-colors p-2 mx-auto flex" title="Logout" aria-label="Logout">
+          <button
+            onClick={logout}
+            className="text-slate-400 hover:text-red-400 transition-colors p-2 mx-auto flex"
+            title="Logout"
+            aria-label="Logout"
+          >
             <LogOut className="w-4 h-4" />
           </button>
         ) : (
@@ -111,7 +118,7 @@ export function Sidebar({ collapsed, onClose }: SidebarProps) {
               <p className="text-white text-xs font-medium truncate">Super Admin</p>
               <p className="text-slate-400 text-xs">Admin</p>
             </div>
-            <button className="text-slate-400 hover:text-red-400 transition-colors p-1 flex-shrink-0" aria-label="Logout">
+            <button onClick={logout} className="text-slate-400 hover:text-red-400 transition-colors p-1 flex-shrink-0" aria-label="Logout">
               <LogOut className="w-4 h-4" />
             </button>
           </div>

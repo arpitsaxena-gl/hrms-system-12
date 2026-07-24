@@ -17,6 +17,7 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
+  Cell,
 } from 'recharts'
 
 type StatItem = {
@@ -177,7 +178,7 @@ export default function DashboardPage() {
                   paddingAngle={2}
                 >
                   {DEPARTMENT_DISTRIBUTION.map(item => (
-                    <cell key={item.name} fill={item.color} />
+                    <Cell key={item.name} fill={item.color} />
                   ))}
                 </Pie>
                 <Tooltip />
