@@ -1,0 +1,99 @@
+name: QA Ephemeral Runner
+
+# Managed by the Sustenance QA pipeline. version: 2
+# Dispatched against a throwaway qa/* branch; fix branch gets tests only after green.
+on:
+  workflow_dispatch:
+    inputs:
+      framework:
+        description: phpunit | vitest | npm-test | angular | maven | gradle | dotnet | pytest
+        required: true
+        default: auto
+      test_paths:
+        description: Space separated test paths to run (empty runs the full suite)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        id: tests
+        shell: bash
+        run: |
+          set -o pipefail
+          FRAMEWORK="${{ inputs.framework }}"
+          PATHS="${{ inputs.test_paths }}"
+
+          if [ "$FRAMEWORK" = "auto" ]; then
+            if [ -f composer.json ]; then FRAMEWORK=phpunit
+            elif [ -f angular.json ]; then FRAMEWORK=angular
+            elif [ -f package.json ]; then FRAMEWORK=vitest
+            elif [ -f pom.xml ]; then FRAMEWORK=maven
+            elif [ -f build.gradle ] || [ -f build.gradle.kts ]; then FRAMEWORK=gradle
+            elif ls *.sln *.csproj >/dev/null 2>&1; then FRAMEWORK=dotnet
+            else FRAMEWORK=pytest
+            fi
+          fi
+          echo "Resolved framework: $FRAMEWORK"
+          echo "Scoped paths: ${PATHS:-<full suite>}"
+
+          set +e
+          case "$FRAMEWORK" in
+            phpunit)
+              # Scoped Unit overlays are pure PHPUnit\Framework\TestCase files — run via
+              # PHAR with --no-configuration so we do not need a full composer install
+              # (Laravel locks often fail on Actions due to platform/ext mismatches).
+              if [ -n "$PATHS" ]; then
+                curl -fsSL https://phar.phpunit.de/phpunit-11.phar -o /tmp/phpunit-11.phar
+                php /tmp/phpunit-11.phar --no-configuration $PATHS
+              else
+                composer install --no-interaction --prefer-dist --no-progress --ignore-platform-reqs
+                if [ -x vendor/bin/phpunit ]; then BIN=vendor/bin/phpunit; else BIN=phpunit; fi
+                $BIN
+              fi
+              ;;
+            angular)
+              npm ci
+              npx ng test --watch=false --browsers=ChromeHeadless
+              ;;
+            vitest)
+              npm ci
+              if [ -n "$PATHS" ]; then npx vitest run $PATHS; else npx vitest run; fi
+              ;;
+            npm-test)
+              npm ci
+              npm test
+              ;;
+            maven)
+              # -Dtest takes class names, so reduce src/test/java/**/FooTest.java to FooTest
+              CLASSES=$(for p in $PATHS; do basename "$p" .java; done | paste -sd, -)
+              if [ -n "$CLASSES" ]; then mvn -B test -Dtest="$CLASSES" -DfailIfNoSpecifiedTests=false; else mvn -B test; fi
+              ;;
+            gradle)
+              if [ -x ./gradlew ]; then ./gradlew test --no-daemon; else gradle test --no-daemon; fi
+              ;;
+            dotnet)
+              dotnet test --nologo
+              ;;
+            pytest)
+              if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+              pip install pytest
+              python -m pytest -q $PATHS
+              ;;
+            *)
+              echo "Unsupported framework: $FRAMEWORK"
+              exit 2
+              ;;
+          esac
+          CODE=$?
+          set -e
+          echo "QA_EPHEMERAL_EXIT=$CODE"
+          exit $CODE
