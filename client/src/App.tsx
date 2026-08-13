@@ -31,6 +31,17 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// Client-side role guard for defense-in-depth. The server remains the
+// authoritative access check on every endpoint (SEC-6).
+function RoleRoute({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const { user } = useAuthStore()
+  if (user && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
+const PRIVILEGED = ['admin', 'hr']
+const MANAGEMENT = ['admin', 'hr', 'manager']
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
   if (isAuthenticated) return <Navigate to="/dashboard" replace />
@@ -51,14 +62,14 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="employees" element={<EmployeesPage />} />
-          <Route path="employees/new" element={<EmployeeFormPage />} />
+          <Route path="employees/new" element={<RoleRoute roles={PRIVILEGED}><EmployeeFormPage /></RoleRoute>} />
           <Route path="employees/:id" element={<EmployeeDetailPage />} />
-          <Route path="employees/:id/edit" element={<EmployeeFormPage />} />
+          <Route path="employees/:id/edit" element={<RoleRoute roles={PRIVILEGED}><EmployeeFormPage /></RoleRoute>} />
           <Route path="departments" element={<DepartmentsPage />} />
           <Route path="designations" element={<DesignationsPage />} />
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="leaves" element={<LeavesPage />} />
-          <Route path="payroll" element={<PayrollPage />} />
+          <Route path="payroll" element={<RoleRoute roles={MANAGEMENT}><PayrollPage /></RoleRoute>} />
           <Route path="recruitment" element={<RecruitmentPage />} />
           <Route path="performance" element={<PerformancePage />} />
           <Route path="training" element={<TrainingPage />} />
@@ -66,11 +77,11 @@ export default function App() {
           <Route path="holidays" element={<HolidaysPage />} />
           <Route path="shifts" element={<ShiftsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="reports" element={<ReportsPage />} />
+          <Route path="reports" element={<RoleRoute roles={MANAGEMENT}><ReportsPage /></RoleRoute>} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="audit" element={<AuditPage />} />
+          <Route path="settings" element={<RoleRoute roles={PRIVILEGED}><SettingsPage /></RoleRoute>} />
+          <Route path="users" element={<RoleRoute roles={['admin']}><UsersPage /></RoleRoute>} />
+          <Route path="audit" element={<RoleRoute roles={PRIVILEGED}><AuditPage /></RoleRoute>} />
           <Route
             path="*"
             element={

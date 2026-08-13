@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '../types'
 import api from '../lib/axios'
@@ -10,11 +10,15 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
+  clearSession: () => void
+  setTokens: (token: string, refreshToken: string) => void
   updateUser: (user: Partial<User>) => void
   fetchMe: () => Promise<void>
 }
 
+// The persisted store (key `hrms-auth`) is the SINGLE source of truth for the
+// session token — no parallel raw localStorage token is written anymore (SEC-6).
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -28,17 +32,23 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await api.post('/auth/login', { email, password })
           const { token, refreshToken, user } = data.data
-          localStorage.setItem('token', token)
-          localStorage.setItem('refreshToken', refreshToken)
           set({ user, token, refreshToken, isAuthenticated: true, isLoading: false })
         } catch (err) {
           set({ isLoading: false })
           throw err
         }
       },
-      logout: () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
+      setTokens: (token, refreshToken) => set({ token, refreshToken, isAuthenticated: true }),
+      clearSession: () =>
+        set({ user: null, token: null, refreshToken: null, isAuthenticated: false }),
+      logout: async () => {
+        const { refreshToken } = get()
+        // Best-effort server-side revocation (SEC-7); clear local state regardless.
+        try {
+          await api.post('/auth/logout', { refreshToken })
+        } catch {
+          /* ignore network/auth errors on logout */
+        }
         set({ user: null, token: null, refreshToken: null, isAuthenticated: false })
       },
       updateUser: (updates) =>
@@ -48,15 +58,17 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.get('/auth/me')
           set({ user: data.data, isAuthenticated: true })
         } catch {
-          get().logout()
+          get().clearSession()
         }
       },
     }),
     {
       name: 'hrms-auth',
       partialize: (s) => ({
-        token: s.token, refreshToken: s.refreshToken,
-        user: s.user, isAuthenticated: s.isAuthenticated
+        token: s.token,
+        refreshToken: s.refreshToken,
+        user: s.user,
+        isAuthenticated: s.isAuthenticated,
       }),
     }
   )

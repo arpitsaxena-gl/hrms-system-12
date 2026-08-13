@@ -1,15 +1,20 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '../store/authStore'
+
+// Configurable API base URL for production; falls back to the Vite dev proxy (SEC-6 / prod config).
+const baseURL = (import.meta.env.VITE_API_BASE_URL as string) || '/api'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
 })
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    // Single source of truth for the session token: the auth store.
+    const token = useAuthStore.getState().token
     if (token) config.headers.Authorization = `Bearer ${token}`
     return config
   },
@@ -22,21 +27,19 @@ api.interceptors.response.use(
     const originalRequest = error.config
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
-      const refreshToken = localStorage.getItem('refreshToken')
+      const { refreshToken, setTokens, clearSession } = useAuthStore.getState()
       if (refreshToken) {
         try {
-          const { data } = await axios.post('/api/auth/refresh', { refreshToken })
-          localStorage.setItem('token', data.data.token)
-          localStorage.setItem('refreshToken', data.data.refreshToken)
+          const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken })
+          setTokens(data.data.token, data.data.refreshToken)
           originalRequest.headers.Authorization = `Bearer ${data.data.token}`
           return api(originalRequest)
         } catch {
-          localStorage.removeItem('token')
-          localStorage.removeItem('refreshToken')
+          clearSession()
           window.location.href = '/login'
         }
       } else {
-        localStorage.removeItem('token')
+        clearSession()
         window.location.href = '/login'
       }
     }
