@@ -1,6 +1,8 @@
-﻿const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { createError } = require('../utils/helpers');
+const { env } = require('../config/env');
+const logger = require('../utils/logger');
 
 const protect = async (req, res, next) => {
   let token;
@@ -9,7 +11,7 @@ const protect = async (req, res, next) => {
   }
   if (!token) return next(createError('Not authorized to access this route', 401));
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, env.JWT_SECRET);
     const user = await User.findById(decoded.id).populate('employee');
     if (!user) return next(createError('User not found', 401));
     if (!user.isActive) return next(createError('Your account has been deactivated', 401));
@@ -33,9 +35,12 @@ const optionalAuth = async (req, res, next) => {
   }
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+      const decoded = jwt.verify(token, env.JWT_SECRET);
       req.user = await User.findById(decoded.id);
-    } catch (_) {}
+    } catch (err) {
+      // Optional auth: an invalid/expired token is not fatal, but log it (PERF-7).
+      logger.warn(`optionalAuth: ignoring invalid token - ${err.message}`);
+    }
   }
   next();
 };

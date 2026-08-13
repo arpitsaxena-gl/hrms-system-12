@@ -1,7 +1,8 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { ROLES } = require('../config/constants');
+const { env } = require('../config/env');
 
 /**
  * @swagger
@@ -52,8 +53,7 @@ userSchema.virtual('isLocked').get(function() { return !!(this.lockUntil && this
 
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 10;
-  this.password = await bcrypt.hash(this.password, rounds);
+  this.password = await bcrypt.hash(this.password, env.BCRYPT_ROUNDS);
   if (!this.isNew) this.passwordChangedAt = Date.now() - 1000;
   next();
 });
@@ -62,12 +62,14 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Signing uses env secrets only — no hardcoded fallbacks (SEC-2). assertSecrets()
+// guarantees these are present and strong before the server accepts traffic.
 userSchema.methods.generateAuthToken = function() {
-  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET || 'secret', { expiresIn: process.env.JWT_EXPIRE || '7d' });
+  return jwt.sign({ id: this._id, role: this.role }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRE });
 };
 
 userSchema.methods.generateRefreshToken = function() {
-  return jwt.sign({ id: this._id }, process.env.JWT_REFRESH_SECRET || 'refresh_secret', { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d' });
+  return jwt.sign({ id: this._id }, env.JWT_REFRESH_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRE });
 };
 
 userSchema.methods.passwordChangedAfter = function(jwtTimestamp) {
@@ -85,4 +87,3 @@ userSchema.index({ isActive: 1 });
 userSchema.index({ employee: 1 });
 
 module.exports = mongoose.model('User', userSchema);
-
