@@ -1,5 +1,6 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const { GENDER, MARITAL_STATUS, BLOOD_GROUPS, EMPLOYMENT_TYPES, EMPLOYMENT_STATUS } = require('../config/constants');
+const Counter = require('./Counter');
 
 const addressSchema = new mongoose.Schema({
   street: String, city: String, state: String, country: { type: String, default: 'India' }, zipCode: String
@@ -61,10 +62,10 @@ const employeeSchema = new mongoose.Schema({
   },
   documents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Document' }],
   leaveBalance: {
-    annual: { type: Number, default: 18 },
-    sick: { type: Number, default: 12 },
-    casual: { type: Number, default: 6 },
-    compensatory: { type: Number, default: 0 }
+    annual: { type: Number, default: 18, min: [0, 'Leave balance cannot be negative'] },
+    sick: { type: Number, default: 12, min: [0, 'Leave balance cannot be negative'] },
+    casual: { type: Number, default: 6, min: [0, 'Leave balance cannot be negative'] },
+    compensatory: { type: Number, default: 0, min: [0, 'Leave balance cannot be negative'] }
   },
   assets: [{ name: String, assetId: String, assignedDate: Date }],
   notes: String,
@@ -94,12 +95,17 @@ employeeSchema.pre('save', function(next) {
   next();
 });
 
+// Atomic, collision-free employeeId generation via the Counter collection (PERF-6),
+// replacing the previous countDocuments() check-then-act race.
 employeeSchema.pre('save', async function(next) {
-  if (!this.employeeId) {
-    const count = await this.constructor.countDocuments();
-    this.employeeId = `EMP${String(count + 1).padStart(4, '0')}`;
+  if (this.employeeId) return next();
+  try {
+    const seq = await Counter.next('employeeId', this.$session());
+    this.employeeId = `EMP${String(seq).padStart(4, '0')}`;
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 });
 
 employeeSchema.index({ department: 1 });
@@ -109,4 +115,3 @@ employeeSchema.index({ employmentStatus: 1 });
 employeeSchema.index({ user: 1 });
 
 module.exports = mongoose.model('Employee', employeeSchema);
-

@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const { PAYROLL_STATUS } = require('../config/constants');
 
 const payrollSchema = new mongoose.Schema({
@@ -37,7 +37,7 @@ const payrollSchema = new mongoose.Schema({
     workingDays: { type: Number, default: 0 },
     overtimeHours: { type: Number, default: 0 }
   },
-  netSalary: { type: Number, default: 0 },
+  netSalary: { type: Number, default: 0, min: 0 },
   status: { type: String, enum: PAYROLL_STATUS, default: 'draft' },
   paymentDate: Date,
   paymentMethod: { type: String, enum: ['bank_transfer', 'cash', 'cheque'], default: 'bank_transfer' },
@@ -57,7 +57,8 @@ payrollSchema.pre('save', function(next) {
   e.grossEarnings = (e.basic||0)+(e.hra||0)+(e.da||0)+(e.ta||0)+(e.medical||0)+(e.overtime||0)+(e.bonus||0)+(e.incentive||0)+(e.other||0);
   const d = this.deductions;
   d.totalDeductions = (d.pf||0)+(d.esi||0)+(d.tds||0)+(d.professionalTax||0)+(d.loanRepayment||0)+(d.leave||0)+(d.other||0);
-  this.netSalary = e.grossEarnings - d.totalDeductions;
+  // Net pay can never be negative (PAYROLL).
+  this.netSalary = Math.max(0, e.grossEarnings - d.totalDeductions);
   next();
 });
 
