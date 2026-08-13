@@ -1,16 +1,27 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
-const { register, login, getMe, updatePassword, refreshToken } = require('../controllers/authController');
+const rateLimit = require('express-rate-limit');
+const { register, login, getMe, updatePassword, refreshToken, logout } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
-const { body } = require('express-validator');
 const validate = require('../middleware/validate');
+const { registerSchema, loginSchema, refreshSchema, logoutSchema, updatePasswordSchema } = require('../validators/auth.schema');
+
+// Dedicated stricter limiter for credential endpoints, separate from the global
+// API limiter (SEC-8).
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX || '10', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts, please try again later.' },
+});
 
 /**
  * @swagger
  * /auth/register:
  *   post:
  *     tags: [Auth]
- *     summary: Register a new user
+ *     summary: Register a new user (always created as an employee)
  *     requestBody:
  *       required: true
  *       content:
@@ -27,23 +38,11 @@ const validate = require('../middleware/validate');
  *       201: { description: User registered }
  *       400: { description: Validation error }
  */
-router.post('/register', [
-  body('firstName').notEmpty().withMessage('First name required'),
-  body('lastName').notEmpty().withMessage('Last name required'),
-  body('email').isEmail().withMessage('Valid email required'),
-  body('password').isLength({ min: 6 }).withMessage('Password min 6 characters')
-], validate, register);
-
-router.post('/login', [
-  body('email').isEmail().withMessage('Valid email required'),
-  body('password').notEmpty().withMessage('Password required')
-], validate, login);
-
+router.post('/register', validate.schema(registerSchema), register);
+router.post('/login', loginLimiter, validate.schema(loginSchema), login);
 router.get('/me', protect, getMe);
-router.put('/password', protect, [
-  body('currentPassword').notEmpty(),
-  body('newPassword').isLength({ min: 6 })
-], validate, updatePassword);
-router.post('/refresh', refreshToken);
+router.put('/password', protect, validate.schema(updatePasswordSchema), updatePassword);
+router.post('/refresh', loginLimiter, validate.schema(refreshSchema), refreshToken);
+router.post('/logout', protect, validate.schema(logoutSchema), logout);
 
 module.exports = router;
