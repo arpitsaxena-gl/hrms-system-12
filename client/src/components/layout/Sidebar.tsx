@@ -2,7 +2,6 @@ import { NavLink } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useAuthStore } from '../../store/authStore'
 import {
-  LayoutDashboard,
   Users,
   UserCircle,
   Building2,
@@ -26,7 +25,6 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   { label: 'Employees', icon: Users, to: '/employees' },
   { label: 'Departments', icon: Building2, to: '/departments', roles: ['admin', 'hr'] },
   { label: 'Designations', icon: Briefcase, to: '/designations', roles: ['admin', 'hr'] },
