@@ -1,0 +1,294 @@
+{
+  "_meta": {
+    "agent": "takeover-code-analyser-agent",
+    "llm": "claude-sonnet-4-6",
+    "run_id": "20260814T175951_ya9yzo",
+    "generated_at": "2026-08-14T12:42:01.199Z",
+    "repository": "arpitsaxena-gl/hrms-system-12",
+    "branch": "main"
+  },
+  "detected_stack": {
+    "languages": ["TypeScript 6.0", "TSX"],
+    "backend": [],
+    "frontend": [
+      "React 19.2.7",
+      "React Router DOM 7.18.1",
+      "TanStack React Query 5.101.4",
+      "Zustand 5.0.14",
+      "Recharts 3.10.0",
+      "React Hook Form 7.82",
+      "Vite 8.1.1"
+    ],
+    "data": ["Axios 1.18.1 (REST client)", "Socket.IO Client 4.8.3 (WebSocket)"],
+    "build_deploy": ["Vite 8.1.1", "Tailwind CSS 3.4.19", "PostCSS", "oxlint 1.71.0"],
+    "testing": ["Vitest 3.2.4", "@testing-library/react 16.3", "jsdom 26.1"],
+    "confidence": "high",
+    "notes": "Full client SPA analysed. Backend (backend/) not read — inferred as Node.js REST API from API call patterns and route paths like /auth/login, /attendance, /employees."
+  },
+  "architecture": {
+    "style": "SPA — feature-sliced pages, layered shell / feature-page / primitive-component",
+    "layers": [
+      "Shell (Layout, Sidebar, Navbar)",
+      "Page (pages/<feature>/<Feature>Page.tsx)",
+      "UI Primitives (components/ui/)",
+      "State (store/authStore.ts — Zustand)",
+      "Data Fetching (TanStack React Query + Axios)",
+      "Types (types/index.ts)"
+    ],
+    "components": [
+      { "name": "App.tsx", "role": "Route registry, PrivateRoute/PublicRoute guards" },
+      { "name": "Layout.tsx", "role": "Persistent shell — sidebar + navbar + outlet" },
+      { "name": "Sidebar.tsx", "role": "Dark left navigation (slate-900, collapsible)" },
+      { "name": "Navbar.tsx", "role": "White top header bar" },
+      { "name": "StatCard.tsx", "role": "Reusable stat metric display card" },
+      { "name": "authStore.ts", "role": "Global auth state (Zustand + localStorage persist)" },
+      { "name": "types/index.ts", "role": "Shared TypeScript entity interfaces" }
+    ],
+    "dependencies": [
+      { "from": "App.tsx", "to": "Layout.tsx", "type": "route child" },
+      { "from": "Layout.tsx", "to": "Sidebar.tsx", "type": "component composition" },
+      { "from": "Layout.tsx", "to": "Navbar.tsx", "type": "component composition" },
+      { "from": "Sidebar.tsx", "to": "authStore.ts", "type": "hook (logout)" },
+      { "from": "Sidebar.tsx", "to": "usePermissions", "type": "hook (role filter)" },
+      { "from": "Navbar.tsx", "to": "authStore.ts", "type": "implicit (static display)" },
+      { "from": "Pages", "to": "TanStack Query", "type": "data fetching" },
+      { "from": "TanStack Query", "to": "lib/axios", "type": "HTTP" },
+      { "from": "lib/axios", "to": "backend REST API", "type": "network" }
+    ],
+    "risks": [
+      "PublicRoute redirects to /dashboard which has no matching Route definition — auth'd users hit 404",
+      "No index route inside Layout shell — direct / navigation shows empty Outlet",
+      "Dashboard absent from NAV_ITEMS — no sidebar link even after route is created"
+    ]
+  },
+  "field_summary": {
+    "total_fields": 16,
+    "mandatory_fields": 4,
+    "optional_fields": 10,
+    "default_fields": 2
+  },
+  "field_validations": {
+    "general": [
+      {
+        "field": "isAuthenticated + token",
+        "description": "PrivateRoute guard: redirects to /login if !isAuthenticated || !token",
+        "file": "client/src/App.tsx",
+        "line_hint": 31,
+        "severity": "critical",
+        "validation_type": "authorization"
+      },
+      {
+        "field": "isAuthenticated",
+        "description": "PublicRoute guard: redirects to /dashboard if isAuthenticated — but /dashboard route missing",
+        "file": "client/src/App.tsx",
+        "line_hint": 36,
+        "severity": "high",
+        "validation_type": "authorization"
+      }
+    ],
+    "mandatory": [
+      { "field": "title", "component": "StatCard", "description": "Required string prop — no default" },
+      { "field": "value", "component": "StatCard", "description": "Required string|number prop" },
+      { "field": "icon", "component": "StatCard", "description": "Required LucideIcon component ref" },
+      { "field": "collapsed", "component": "Sidebar", "description": "Required boolean prop" }
+    ],
+    "default": [
+      { "field": "iconBg", "component": "StatCard", "default": "bg-primary-50", "description": "Tailwind class for icon container background" },
+      { "field": "iconColor", "component": "StatCard", "default": "text-primary-600", "description": "Tailwind class for icon color" }
+    ]
+  },
+  "validation_classifications": {
+    "input": [
+      {
+        "description": "PrivateRoute checks isAuthenticated and token before rendering protected content",
+        "file": "client/src/App.tsx",
+        "line_hint": 31,
+        "severity": "critical"
+      }
+    ],
+    "business": [
+      {
+        "description": "PublicRoute prevents authenticated users from accessing /login — redirects to /dashboard (which is missing)",
+        "file": "client/src/App.tsx",
+        "line_hint": 36,
+        "severity": "high"
+      },
+      {
+        "description": "Sidebar NAV_ITEMS role filter — items with roles array are hidden from users not in that role list",
+        "file": "client/src/components/layout/Sidebar.tsx",
+        "line_hint": 47,
+        "severity": "medium"
+      }
+    ],
+    "database": [],
+    "conditional": [
+      {
+        "field": "collapsed",
+        "description": "Sidebar renders icon-only mode when collapsed=true; text labels and logo text hidden",
+        "file": "client/src/components/layout/Sidebar.tsx",
+        "severity": "info"
+      },
+      {
+        "field": "trend",
+        "description": "StatCard renders TrendingUp/Down icon + percentage only when trend !== undefined",
+        "file": "client/src/components/ui/StatCard.tsx",
+        "severity": "info"
+      },
+      {
+        "field": "onClose",
+        "description": "Sidebar renders X close button only when onClose prop is truthy (mobile use)",
+        "file": "client/src/components/layout/Sidebar.tsx",
+        "severity": "info"
+      }
+    ]
+  },
+  "performance_findings": [
+    {
+      "description": "Recharts is not code-split; importing it in DashboardPage will add ~200KB+ to the page bundle unless React.lazy() wraps DashboardPage",
+      "severity": "low",
+      "effort": "low",
+      "category": "bundle-size"
+    },
+    {
+      "description": "fetchMe() called on every app mount when isAuthenticated — adds network round-trip before first render",
+      "file": "client/src/App.tsx",
+      "line_hint": 43,
+      "severity": "info",
+      "effort": "low"
+    }
+  ],
+  "security_findings": [
+    {
+      "description": "JWT access token and refresh token stored in localStorage — vulnerable to XSS token theft",
+      "file": "client/src/store/authStore.ts",
+      "line_hint": 31,
+      "severity": "medium",
+      "category": "sensitive-data-exposure"
+    },
+    {
+      "description": "CORS / backend security not assessed — backend/ directory not analysed",
+      "severity": "low",
+      "category": "misconfiguration"
+    }
+  ],
+  "integration_points": [
+    {
+      "type": "REST API",
+      "direction": "outbound",
+      "description": "All pages use lib/axios to call backend REST API",
+      "endpoints_inferred": ["/auth/login", "/auth/me", "/attendance", "/attendance/summary", "/employees", "/leaves", "/payroll", "/recruitment"]
+    },
+    {
+      "type": "WebSocket",
+      "direction": "bidirectional",
+      "description": "Socket.IO client installed (v4.8.3); usage not found in analysed layout/page files — likely used in Notifications"
+    },
+    {
+      "type": "localStorage",
+      "direction": "bidirectional",
+      "description": "Zustand persist middleware writes/reads token, refreshToken, user, isAuthenticated"
+    }
+  ],
+  "issues": [
+    {
+      "id": "ISS-01",
+      "description": "DashboardPage.tsx does not exist — /dashboard route is missing from App.tsx route registry",
+      "file": "client/src/App.tsx",
+      "severity": "critical",
+      "category": "routing-gap",
+      "effort": "low"
+    },
+    {
+      "id": "ISS-02",
+      "description": "Dashboard entry missing from NAV_ITEMS in Sidebar.tsx — no sidebar link to Dashboard",
+      "file": "client/src/components/layout/Sidebar.tsx",
+      "severity": "high",
+      "category": "navigation-gap",
+      "effort": "low"
+    },
+    {
+      "id": "ISS-03",
+      "description": "No <Route index> inside Layout — direct navigation to / shows empty Outlet when authenticated",
+      "file": "client/src/App.tsx",
+      "severity": "medium",
+      "category": "routing-gap",
+      "effort": "low"
+    },
+    {
+      "id": "ISS-04",
+      "description": "Hard-coded 'SA' / 'Super Admin' in Sidebar footer and Navbar — does not read from authStore.user",
+      "file": "client/src/components/layout/Sidebar.tsx + Navbar.tsx",
+      "severity": "low",
+      "category": "code-smell",
+      "effort": "low"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "REC-01",
+      "description": "Create client/src/pages/dashboard/DashboardPage.tsx with 8 StatCards, Recharts AreaChart (Attendance Trend), and Recharts PieChart (By Department)",
+      "priority": "critical",
+      "effort": "medium",
+      "references_issue": "ISS-01"
+    },
+    {
+      "id": "REC-02",
+      "description": "Add <Route path='dashboard' element={<DashboardPage />} /> and <Route index element={<Navigate to='dashboard' replace />} /> inside the Layout private route in App.tsx",
+      "priority": "critical",
+      "effort": "low",
+      "references_issue": ["ISS-01", "ISS-03"]
+    },
+    {
+      "id": "REC-03",
+      "description": "Prepend { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' } as the first entry in NAV_ITEMS in Sidebar.tsx",
+      "priority": "high",
+      "effort": "low",
+      "references_issue": "ISS-02"
+    },
+    {
+      "id": "REC-04",
+      "description": "Reuse existing StatCard component for all 8 dashboard stat cards — props already match design spec (iconBg/iconColor for pastel square badge, trend for percentage, trendLabel for 'vs last month')",
+      "priority": "high",
+      "effort": "low"
+    },
+    {
+      "id": "REC-05",
+      "description": "Use date-fns format() with 'EEEE, MMMM do yyyy' to generate the greeting subtitle dynamically from new Date()",
+      "priority": "medium",
+      "effort": "low"
+    },
+    {
+      "id": "REC-06",
+      "description": "Use Recharts AreaChart with defs linearGradient fills for Attendance Trend and PieChart with innerRadius for By Department donut chart — both packages already installed",
+      "priority": "medium",
+      "effort": "medium"
+    },
+    {
+      "id": "REC-07",
+      "description": "Read user display name and initials from useAuthStore().user in Sidebar footer and Navbar instead of hard-coded 'SA'/'Super Admin'",
+      "priority": "low",
+      "effort": "low",
+      "references_issue": "ISS-04"
+    }
+  ],
+  "files_to_create": [
+    "client/src/pages/dashboard/DashboardPage.tsx"
+  ],
+  "files_to_modify": [
+    {
+      "path": "client/src/App.tsx",
+      "changes": [
+        "Import DashboardPage",
+        "Add <Route index element={<Navigate to='dashboard' replace />} /> inside Layout route",
+        "Add <Route path='dashboard' element={<DashboardPage />} /> inside Layout route"
+      ]
+    },
+    {
+      "path": "client/src/components/layout/Sidebar.tsx",
+      "changes": [
+        "Import LayoutDashboard from lucide-react",
+        "Prepend { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' } to NAV_ITEMS"
+      ]
+    }
+  ]
+}
