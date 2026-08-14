@@ -1,8 +1,11 @@
-﻿const Employee = require('../models/Employee');
+const Employee = require('../models/Employee');
 const Attendance = require('../models/Attendance');
 const Leave = require('../models/Leave');
 const Payroll = require('../models/Payroll');
 const ApiResponse = require('../utils/apiResponse');
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DEPT_COLORS = ['#8B5CF6', '#3B82F6', '#EC4899', '#10B981', '#F97316', '#EAB308', '#EF4444', '#06B6D4'];
 
 const getDashboardStats = async (req, res, next) => {
   try {
@@ -61,6 +64,90 @@ const getDashboardStats = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+const getDashboardStatsFlat = async (req, res, next) => {
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const [
+      totalEmployees, activeEmployees, newJoiners,
+      presentToday, pendingLeaves, payrollAgg, openPositions,
+    ] = await Promise.all([
+      Employee.countDocuments(),
+      Employee.countDocuments({ employmentStatus: 'active' }),
+      Employee.countDocuments({ joiningDate: { $gte: thisMonth } }),
+      Attendance.countDocuments({ date: today, status: { $in: ['present', 'work_from_home'] } }),
+      Leave.countDocuments({ status: 'pending' }),
+      Payroll.aggregate([
+        { $match: { month: today.getMonth() + 1, year: today.getFullYear(), status: { $in: ['processed', 'paid'] } } },
+        { $group: { _id: null, total: { $sum: '$netSalary' } } },
+      ]),
+      (async () => { const { Job } = require('../models/Recruitment'); return Job.countDocuments({ status: 'open' }); })(),
+    ]);
+    ApiResponse.success(res, {
+      totalEmployees,
+      presentToday,
+      presentCapacity: totalEmployees,
+      pendingLeaves,
+      monthlyPayrollRs: payrollAgg[0] ? payrollAgg[0].total : 0,
+      newJoinersThisMonth: newJoiners,
+      attendanceRatePercent: totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0,
+      openPositions,
+      activeEmployees,
+    });
+  } catch (err) { next(err); }
+};
+
+const getAttendanceTrend7d = async (req, res, next) => {
+  try {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(today); sevenDaysAgo.setDate(today.getDate() - 6);
+    const endOfToday = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1);
+    const records = await Attendance.aggregate([
+      { $match: { date: { $gte: sevenDaysAgo, $lte: endOfToday } } },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+        present: { $sum: { $cond: [{ $in: ['$status', ['present', 'work_from_home']] }, 1, 0] } },
+        absent:  { $sum: { $cond: [{ $eq: ['$status', 'absent'] }, 1, 0] } },
+        onLeave: { $sum: { $cond: [{ $eq: ['$status', 'on_leave'] }, 1, 0] } },
+      }},
+      { $sort: { _id: 1 } },
+    ]);
+    const trend = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(sevenDaysAgo); d.setDate(sevenDaysAgo.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      const found = records.find(r => r._id === key);
+      trend.push({
+        day: DAY_LABELS[d.getDay()],
+        present: found ? found.present : 0,
+        absent:  found ? found.absent  : 0,
+        onLeave: found ? found.onLeave : 0,
+      });
+    }
+    ApiResponse.success(res, trend);
+  } catch (err) { next(err); }
+};
+
+const getDeptDistribution = async (req, res, next) => {
+  try {
+    const data = await Employee.aggregate([
+      { $match: { employmentStatus: 'active' } },
+      { $group: { _id: '$department', value: { $sum: 1 } } },
+      { $lookup: { from: 'departments', localField: '_id', foreignField: '_id', as: 'dept' } },
+      { $unwind: '$dept' },
+      { $project: { name: '$dept.name', value: 1, color: { $ifNull: ['$dept.color', ''] } } },
+      { $sort: { value: -1 } },
+      { $limit: 10 },
+    ]);
+    const result = data.map((d, i) => ({
+      name: d.name,
+      value: d.value,
+      color: d.color || DEPT_COLORS[i % DEPT_COLORS.length],
+    }));
+    ApiResponse.success(res, result);
+  } catch (err) { next(err); }
+};
+
 const getAdminDashboard = async (req, res, next) => {
   try {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -79,4 +166,4 @@ const getAdminDashboard = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getDashboardStats, getAdminDashboard };
+module.exports = { getDashboardStats, getAdminDashboard, getDashboardStatsFlat, getAttendanceTrend7d, getDeptDistribution };
