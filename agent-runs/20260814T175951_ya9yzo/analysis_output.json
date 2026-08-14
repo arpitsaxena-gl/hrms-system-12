@@ -1,0 +1,98 @@
+{
+  "_header": {
+    "agent": "takeover-code-analyser-agent",
+    "llm": "claude-sonnet-4-6",
+    "run_id": "20260814T175951_ya9yzo",
+    "generated_at": "2026-08-14T12:29:59.573Z"
+  },
+  "detected_stack": {
+    "languages": ["TypeScript 6", "TSX", "CSS"],
+    "backend": ["Node.js (presumed — backend/ dir not fully analysed)"],
+    "frontend": ["React 19", "Vite 8", "React Router DOM 7", "Tailwind CSS 3", "Recharts 3", "Lucide React", "Zustand 5", "TanStack Query 5", "TanStack Table 8", "React Hook Form", "Zod"],
+    "data": ["Static mock data in DashboardPage", "Axios for HTTP (wired elsewhere)"],
+    "build_deploy": ["Vite 8", "TypeScript compiler", "oxlint", "postcss + autoprefixer"],
+    "testing": ["Vitest 3", "@testing-library/react 16", "jsdom"],
+    "confidence": "high",
+    "notes": "All detections based on package.json, tsconfig, and source files. Backend directory exists but was not analysed in this pass."
+  },
+  "architecture": {
+    "style": "SPA — layered component architecture (routing → layout shell → feature pages)",
+    "layers": ["Routing (App.tsx)", "Shell/Layout (Layout, Sidebar, Navbar)", "Pages (pages/*/)", "State (Zustand authStore)", "Hooks (usePermissions)"],
+    "components": [
+      { "name": "App", "role": "Root router + route guards" },
+      { "name": "Layout", "role": "Shell — sidebar + navbar + outlet" },
+      { "name": "Sidebar", "role": "Navigation — dark slate, role-filtered nav items" },
+      { "name": "Navbar", "role": "Top bar — menu toggle, search, notifications, user" },
+      { "name": "DashboardPage", "role": "KPI overview — stat cards + attendance chart + dept donut" }
+    ],
+    "dependencies": [
+      "react-router-dom — routing",
+      "zustand — auth state",
+      "@tanstack/react-query — server state",
+      "recharts — charts",
+      "lucide-react — icons",
+      "date-fns — date formatting",
+      "axios — HTTP",
+      "tailwind-merge + clsx — class utilities"
+    ],
+    "risks": [
+      "Dashboard KPI data is currently mocked — must be replaced with live API calls",
+      "No loading/error boundaries on dashboard page",
+      "Auth token stored in Zustand (JS memory) — XSS accessible"
+    ]
+  },
+  "field_summary": {
+    "total_fields": 6,
+    "mandatory_fields": 3,
+    "optional_fields": 1,
+    "default_fields": 4
+  },
+  "field_validations": {
+    "general": [
+      { "field": "collapsed", "description": "Boolean prop, TypeScript-enforced — no runtime null-check needed", "severity": "info" }
+    ],
+    "mandatory": [
+      { "field": "collapsed", "description": "Required prop on Sidebar component", "file": "client/src/components/layout/Sidebar.tsx", "severity": "info" }
+    ],
+    "default": [
+      { "field": "attendanceData", "description": "Module-level constant with 7-day mock data", "file": "client/src/pages/dashboard/DashboardPage.tsx", "severity": "info" },
+      { "field": "departmentData", "description": "Module-level constant with 5-dept mock data", "file": "client/src/pages/dashboard/DashboardPage.tsx", "severity": "info" },
+      { "field": "STAT_CARDS", "description": "Module-level const array with 8 KPI definitions", "file": "client/src/pages/dashboard/DashboardPage.tsx", "severity": "info" }
+    ]
+  },
+  "validation_classifications": {
+    "input": [
+      { "description": "collapsed prop typed as boolean in SidebarProps interface", "field": "collapsed", "file": "Sidebar.tsx", "severity": "info" }
+    ],
+    "business": [],
+    "database": [],
+    "conditional": [
+      { "description": "onClose button only rendered when onClose prop is truthy", "field": "onClose", "file": "Sidebar.tsx", "severity": "info", "validation_type": "conditional render" }
+    ]
+  },
+  "performance_findings": [
+    { "description": "Dashboard data is static module-level constants — zero re-render cost but not live data", "severity": "info", "effort": "medium" },
+    { "description": "Missing index route caused blank page for authenticated users at /", "severity": "medium", "effort": "low" }
+  ],
+  "security_findings": [
+    { "description": "Auth token stored in Zustand (JS heap) — accessible to XSS", "severity": "low", "category": "Sensitive data exposure", "effort": "high" },
+    { "description": "PrivateRoute guards both isAuthenticated and token — correct double-check", "severity": "info", "category": "Access control" }
+  ],
+  "integration_points": [
+    { "name": "authStore.fetchMe", "direction": "outbound", "description": "Re-validates session on app load via HTTP", "file": "App.tsx" },
+    { "name": "Dashboard → backend KPI endpoints", "direction": "outbound", "description": "Not yet wired — mock data in place", "file": "DashboardPage.tsx" },
+    { "name": "socket.io-client", "direction": "bidirectional", "description": "Dependency present; not used in dashboard", "file": "package.json" }
+  ],
+  "issues": [
+    { "description": "Missing /dashboard route — authenticated users redirected to a non-existent page", "severity": "high", "file": "client/src/App.tsx", "effort": "low" },
+    { "description": "Dashboard KPI values are hardcoded mocks, not live API data", "severity": "medium", "effort": "medium" },
+    { "description": "No loading skeleton or error boundary on DashboardPage", "severity": "medium", "effort": "low" }
+  ],
+  "recommendations": [
+    { "description": "Add /dashboard route with DashboardPage component and index redirect from /", "severity": "high", "effort": "low", "category": "routing" },
+    { "description": "Add Dashboard nav item (LayoutDashboard icon) as first item in Sidebar NAV_ITEMS", "severity": "high", "effort": "low", "category": "navigation" },
+    { "description": "Replace mock attendanceData and departmentData with useQuery calls to backend API endpoints", "severity": "medium", "effort": "medium", "category": "data" },
+    { "description": "Add Suspense/skeleton loader and error boundary to DashboardPage for when API integration is added", "severity": "medium", "effort": "low", "category": "ux" },
+    { "description": "Consider moving auth token to httpOnly cookie to eliminate XSS token theft surface", "severity": "low", "effort": "high", "category": "security" }
+  ]
+}
